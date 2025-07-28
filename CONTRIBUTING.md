@@ -1,12 +1,12 @@
-# Contributing to EzyWay
+# Contributing to next-stack
 
-Thank you for your interest in contributing to EzyWay! This document provides guidelines and information for
+Thank you for your interest in contributing to next-stack! This document provides guidelines and information for
 contributors.
 
 ## 🚀 Quick Start
 
 1. **Fork** the repository
-2. **Clone** your fork: `git clone https://github.com/your-username/ezyway.git`
+2. **Clone** your fork: `git clone https://github.com/your-username/next-stack.git`
 3. **Install** dependencies: `npm install`
 4. **Create** a feature branch: `git checkout -b feat/your-feature-name`
 5. **Make** your changes
@@ -228,7 +228,7 @@ npm run build-storybook # Build Storybook
 ## 🏗️ Project Structure
 
 ```
-ezyway/
+next-stack/
 ├── app/                    # Next.js app directory
 │   ├── [locale]/          # Internationalized routes
 │   └── api/               # API routes
@@ -370,7 +370,7 @@ When requesting features, please include:
 
 ## 🙏 Acknowledgments
 
-Thank you for contributing to EzyWay! Your contributions help make this project better for everyone.
+Thank you for contributing to next-stack! Your contributions help make this project better for everyone.
 
 ---
 

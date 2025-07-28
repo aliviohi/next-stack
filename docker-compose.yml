@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  ezyway-front:
+  next-stack-front:
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,7 +19,7 @@ services:
       start_period: 40s
 
   # Development service (optional)
-  ezyway-front-dev:
+  next-stack-front-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev

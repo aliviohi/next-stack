@@ -1,6 +1,6 @@
-# Docker Setup for Ezyway Frontend
+# Docker Setup for next-stack Frontend
 
-This document explains how to run the Ezyway frontend application using Docker.
+This document explains how to run the next-stack frontend application using Docker.
 
 ## Prerequisites
 
@@ -38,12 +38,12 @@ This document explains how to run the Ezyway frontend application using Docker.
 1. **Build the production image:**
 
    ```bash
-   docker build -t ezyway-front .
+   docker build -t next-stack-front .
    ```
 
 2. **Run the production container:**
    ```bash
-   docker run -p 3000:3000 ezyway-front
+   docker run -p 3000:3000 next-stack-front
    ```
 
 ### Development
@@ -51,17 +51,17 @@ This document explains how to run the Ezyway frontend application using Docker.
 1. **Build the development image:**
 
    ```bash
-   docker build -f Dockerfile.dev -t ezyway-front-dev .
+   docker build -f Dockerfile.dev -t next-stack-front-dev .
    ```
 
 2. **Run the development container:**
    ```bash
-   docker run -p 3001:3000 -v $(pwd):/app -v /app/node_modules -v /app/.next ezyway-front-dev
+   docker run -p 3001:3000 -v $(pwd):/app -v /app/node_modules -v /app/.next next-stack-front-dev
    ```
 
 ## Docker Compose Services
 
-### Production Service (`ezyway-front`)
+### Production Service (`next-stack-front`)
 
 - **Port:** 3000
 - **Environment:** Production
@@ -71,7 +71,7 @@ This document explains how to run the Ezyway frontend application using Docker.
   - Automatic restart on failure
   - Security with non-root user
 
-### Development Service (`ezyway-front-dev`)
+### Development Service (`next-stack-front-dev`)
 
 - **Port:** 3001
 - **Environment:** Development
@@ -102,7 +102,7 @@ The application includes a health check endpoint at `/api/health` that returns:
 ### View logs
 
 ```bash
-docker-compose logs -f ezyway-front
+docker-compose logs -f next-stack-front
 ```
 
 ### Stop services
@@ -120,7 +120,7 @@ docker-compose down --rmi all --volumes --remove-orphans
 ### Access container shell
 
 ```bash
-docker-compose exec ezyway-front sh
+docker-compose exec next-stack-front sh
 ```
 
 ## Troubleshooting
