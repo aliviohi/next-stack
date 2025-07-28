@@ -1,60 +1,132 @@
-name: Docker CI/CD for next-stack Front
+name: CI/CD Pipeline
 
 on:
+  pull_request:
+    branches: [main, staging, dev]
   push:
-    branches:
-      - main
+    branches: [main, staging, dev]
+
+env:
+  NODE_VERSION: '20'
+  NPM_CACHE_FOLDER: ~/.npm
+  NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
-  build:
+  # Parallel jobs for faster execution
+  type-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
-        run: npm run build
+      - name: Type check
+        run: npm run type-check
 
-  deploy:
-    needs: build
+  lint-and-format:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Docker Server
-        uses: appleboy/ssh-action@master
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -e
-            cd /var/www/next-stack-front
-            echo "Starting deployment..."
-            git restore .
-            git pull origin main
-            echo "Code updated successfully"
-            echo "Stopping existing container..."
-            docker stop next-stack-front 2>/dev/null || echo "No existing container to stop"
-            docker rm next-stack-front 2>/dev/null || echo "No existing container to remove"
-            echo "Building new Docker image..."
-            docker build -t next-stack-front .
-            echo "Docker image built successfully"
-            echo "Starting new container..."
-            docker run -d --name next-stack-front -p 3000:3000 --env-file /var/www/next-stack-front/.env next-stack-front
-            echo "Container started successfully"
-            sleep 5
-            if docker ps | grep -q next-stack-front; then
-              echo "Deployment completed successfully!"
-            else
-              echo "ERROR: Container is not running!"
-              docker logs next-stack-front
-              exit 1
-            fi
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint check
+        run: npm run lint:strict
+
+      - name: Format check
+        run: npm run format:check
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [type-check, lint-and-format]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Build verification
+        run: |
+          # Verify that the build output exists
+          if [ ! -d ".next" ]; then
+            echo "❌ Build failed: .next directory not found"
+            exit 1
+          fi
+
+          # Check if build artifacts are present
+          if [ ! -f ".next/BUILD_ID" ]; then
+            echo "❌ Build failed: BUILD_ID not found"
+            exit 1
+          fi
+
+          # Check build size (optional)
+          BUILD_SIZE=$(du -sh .next | cut -f1)
+          echo "✅ Build successful! Size: $BUILD_SIZE"
+
+      - name: Upload build artifacts (optional)
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: build-artifacts
+          path: .next/
+          retention-days: 1
+
+  # Combined job for branch protection (this is what GitHub will check)
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: [type-check, lint-and-format, build]
+    steps:
+      - name: All checks passed
+        run: |
+          echo "✅ All CI checks have passed!"
+          echo "Type checking: ✅"
+          echo "Linting and formatting: ✅"
+          echo "Build: ✅"
+          echo "Ready for merge!"
+
+  # Optional: Add a job for running tests if you have them
+  # test:
+  #   runs-on: ubuntu-latest
+  #   needs: build-and-test
+  #
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v4
+  #     with:
+  #       node-version: '20'
+  #       cache: 'npm'
+  #
+  #   - name: Install dependencies
+  #     run: npm ci
+  #
+  #   - name: Run tests
+  #     run: npm test
