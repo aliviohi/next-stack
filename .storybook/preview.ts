@@ -1,5 +1,5 @@
 import type { Preview } from '@storybook/react';
-import '../app/globals.css';
+import '../styles/globals.css';
 
 // Or your main global stylesheet
 

@@ -1,6 +1,5 @@
-import { useTranslations } from 'next-intl';
+import { HomeSection } from './_sections/HomeSection';
 
 export default function Home() {
-  const t = useTranslations();
-  return <div>{t('home')}</div>;
+  return <HomeSection />;
 }
