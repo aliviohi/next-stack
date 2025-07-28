@@ -1,0 +1,60 @@
+name: Docker CI/CD for Ezyway Front
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Docker Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            cd /var/www/ezyway-front
+            echo "Starting deployment..."
+            git restore .
+            git pull origin main
+            echo "Code updated successfully"
+            echo "Stopping existing container..."
+            docker stop ezyway-front 2>/dev/null || echo "No existing container to stop"
+            docker rm ezyway-front 2>/dev/null || echo "No existing container to remove"
+            echo "Building new Docker image..."
+            docker build -t ezyway-front .
+            echo "Docker image built successfully"
+            echo "Starting new container..."
+            docker run -d --name ezyway-front -p 3000:3000 --env-file /var/www/ezyway-front/.env ezyway-front
+            echo "Container started successfully"
+            sleep 5
+            if docker ps | grep -q ezyway-front; then
+              echo "Deployment completed successfully!"
+            else
+              echo "ERROR: Container is not running!"
+              docker logs ezyway-front
+              exit 1
+            fi
